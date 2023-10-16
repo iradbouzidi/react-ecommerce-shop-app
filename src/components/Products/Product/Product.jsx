@@ -20,8 +20,8 @@ const Product = ({ product }) => {
     <Card className={classes.root}>
       <CardMedia
         className={classes.media}
+        image={product.image.url}
         title={product.name}
-        image={product.image}
       />
       <CardContent>
         <div className={classes.cardContent}>
@@ -29,7 +29,7 @@ const Product = ({ product }) => {
             {product.name}
           </Typography>
           <Typography gutterBottom variant="h5" component="h2">
-            {product.price}
+            ${product.price.formatted}
           </Typography>
         </div>
         <Typography
