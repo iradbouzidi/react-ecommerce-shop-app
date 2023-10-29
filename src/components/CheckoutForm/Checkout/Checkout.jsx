@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CssBaseline,
   Paper,
@@ -10,6 +10,7 @@ import {
   Divider,
   Button,
 } from "@material-ui/core";
+import { Link, useHistory } from "react-router-dom";
 
 import { commerce } from "../../../lib/commerce";
 import AddressForm from "../AddressForm";
@@ -18,14 +19,41 @@ import useStyles from "./styles";
 
 const steps = ["Shipping address", "Payment details"];
 
-const Checkout = () => {
+const Checkout = ({ cart, onCaptureCheckout, order, error }) => {
+  const [checkoutToken, setCheckoutToken] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
-
+  const [shippingData, setShippingData] = useState({});
   const classes = useStyles();
+  const history = useHistory();
 
-  const Confirmation = () => <div>Confirmation</div>;
+  const nextStep = () => setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  const backStep = () => setActiveStep((prevActiveStep) => prevActiveStep - 1);
 
-  /*let Confirmation = () =>
+  useEffect(() => {
+    if (cart.id) {
+      const generateToken = async () => {
+        try {
+          const token = await commerce.checkout.generateToken(cart.id, {
+            type: "cart",
+          });
+
+          setCheckoutToken(token);
+        } catch {
+          if (activeStep !== steps.length) history.push("/");
+        }
+      };
+
+      generateToken();
+    }
+  }, [cart]);
+
+  const test = (data) => {
+    setShippingData(data);
+
+    nextStep();
+  };
+
+  let Confirmation = () =>
     order.customer ? (
       <>
         <div>
@@ -47,42 +75,59 @@ const Checkout = () => {
       <div className={classes.spinner}>
         <CircularProgress />
       </div>
-    );*/
+    );
+
+  if (error) {
+    Confirmation = () => (
+      <>
+        <Typography variant="h5">Error: {error}</Typography>
+        <br />
+        <Button component={Link} variant="outlined" type="button" to="/">
+          Back to home
+        </Button>
+      </>
+    );
+  }
 
   const Form = () =>
     activeStep === 0 ? (
       <AddressForm
-      /*checkoutToken={checkoutToken}
+        checkoutToken={checkoutToken}
         nextStep={nextStep}
         setShippingData={setShippingData}
-        test={test}*/
+        test={test}
       />
     ) : (
       <PaymentForm
-      /*checkoutToken={checkoutToken}
-         nextStep={nextStep}
-         backStep={backStep}
-         shippingData={shippingData}
-         onCaptureCheckout={onCaptureCheckout}*/
+        checkoutToken={checkoutToken}
+        nextStep={nextStep}
+        backStep={backStep}
+        shippingData={shippingData}
+        onCaptureCheckout={onCaptureCheckout}
       />
     );
 
   return (
     <>
+      <CssBaseline />
       <div className={classes.toolbar} />
       <main className={classes.layout}>
         <Paper className={classes.paper}>
           <Typography variant="h4" align="center">
             Checkout
           </Typography>
-          <Stepper activeStep={0} className={classes.stepper}>
-            {steps.map((step) => (
-              <Step key={step}>
-                <StepLabel>{step}</StepLabel>
+          <Stepper activeStep={activeStep} className={classes.stepper}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
               </Step>
             ))}
           </Stepper>
-          {activeStep === steps.length ? <Confirmation /> : <Form />}
+          {activeStep === steps.length ? (
+            <Confirmation />
+          ) : (
+            checkoutToken && <Form />
+          )}
         </Paper>
       </main>
     </>

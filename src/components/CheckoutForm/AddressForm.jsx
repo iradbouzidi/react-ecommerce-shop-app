@@ -1,11 +1,3 @@
-import React from "react";
-
-const AddressForm = () => {
-  return <div>AddressForm</div>;
-};
-
-export default AddressForm;
-/*
 import React, { useState, useEffect } from "react";
 import {
   InputLabel,
@@ -170,4 +162,3 @@ const AddressForm = ({ checkoutToken, test }) => {
 };
 
 export default AddressForm;
-*/
